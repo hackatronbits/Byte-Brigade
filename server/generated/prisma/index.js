@@ -242,7 +242,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/amulya/projects/attendance-final/server/generated/prisma",
+      "value": "/home/aadar/Byte-Brigade/server/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -256,12 +256,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/amulya/projects/attendance-final/server/prisma/schema.prisma",
+    "sourceFilePath": "/home/aadar/Byte-Brigade/server/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../../prisma",
   "clientVersion": "6.7.0",
@@ -270,11 +269,12 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": "postgresql://neondb_owner:npg_zi8I6npJQsSW@ep-flat-flower-a5rmt2ox-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require"
+        "value": null
       }
     }
   },
