@@ -1,6 +1,7 @@
-import { BlurView } from 'expo-blur';
-import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import axios from "axios";
+import { BlurView } from "expo-blur";
+import { useRouter } from "expo-router";
+import React, { useRef, useState, useEffect } from "react";
 import {
   Animated,
   Modal,
@@ -10,10 +11,12 @@ import {
   TouchableOpacity,
   Vibration,
   View,
-} from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
-
+} from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
+import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function AttendanceOverlay({ visible, onClose }) {
+  const API_BASE_URL = Constants.expoConfig?.extra?.apiUrl || "";
   const router = useRouter();
 
   const [branchOpen, setBranchOpen] = useState(false);
@@ -25,20 +28,20 @@ export default function AttendanceOverlay({ visible, onClose }) {
   const [subject, setSubject] = useState(null);
 
   const [branchItems] = useState([
-    { label: 'CSE', value: 'cse' },
-    { label: 'IT', value: 'it' },
-    { label: 'ECE', value: 'ece' },
+    { label: "CSE", value: "CSE" },
+    { label: "IT", value: "IT" },
+    { label: "ECE", value: "ECE" },
   ]);
   const [semesterItems] = useState([
-    { label: 'Sem I', value: 'sem1' },
-    { label: 'Sem III', value: 'sem3' },
-    { label: 'Sem V', value: 'sem5' },
-    { label: 'Sem VII', value: 'sem7' },
+    { label: "Sem I", value: "I" },
+    { label: "Sem III", value: "III" },
+    { label: "Sem V", value: "V" },
+    { label: "Sem VII", value: "VII" },
   ]);
   const [subjectItems] = useState([
-    { label: 'DBMS', value: 'dbms' },
-    { label: 'OOPS', value: 'oops' },
-    { label: 'DSA', value: 'dsa' },
+    { label: "DSA", value: "CS201" },
+    { label: "EMaths", value: "MA101" },
+    { label: "DBMS", value: "DBMS" },
   ]);
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -76,10 +79,10 @@ export default function AttendanceOverlay({ visible, onClose }) {
     ]).start();
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (allSelected) {
       router.navigate({
-        pathname: '/teacher-others/attendancetimer',
+        pathname: "/teacher-others/attendancetimer",
         params: {
           branch,
           semester,
@@ -90,7 +93,6 @@ export default function AttendanceOverlay({ visible, onClose }) {
       triggerShake();
     }
   };
-  
 
   return (
     <Modal transparent animationType="none" visible={visible}>
@@ -98,9 +100,14 @@ export default function AttendanceOverlay({ visible, onClose }) {
         <Pressable style={styles.blurArea} onPress={onClose} />
       </BlurView>
 
-      <Animated.View style={[styles.cardContainer, { transform: [{ translateX: shakeAnim }] }]}>
+      <Animated.View
+        style={[
+          styles.cardContainer,
+          { transform: [{ translateX: shakeAnim }] },
+        ]}
+      >
         <TouchableOpacity onPress={onClose} style={styles.backButton}>
-          <Text style={styles.backArrow}>{'\u2190'}</Text>
+          <Text style={styles.backArrow}>{"\u2190"}</Text>
         </TouchableOpacity>
 
         <Text style={styles.title}>Take Attendance</Text>
@@ -147,10 +154,7 @@ export default function AttendanceOverlay({ visible, onClose }) {
         </View>
 
         <TouchableOpacity
-          style={[
-            styles.startButton,
-            { opacity: allSelected ? 1 : 0.7 },
-          ]}
+          style={[styles.startButton, { opacity: allSelected ? 1 : 0.7 }]}
           onPress={handleStart}
         >
           <Text style={styles.startButtonText}>Start Attendance</Text>
@@ -165,11 +169,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardContainer: {
-    position: 'absolute',
-    top: '20%',
-    alignSelf: 'center',
-    width: '85%',
-    backgroundColor: '#fff',
+    position: "absolute",
+    top: "20%",
+    alignSelf: "center",
+    width: "85%",
+    backgroundColor: "#fff",
     padding: 20,
     borderRadius: 20,
     elevation: 10,
@@ -179,12 +183,12 @@ const styles = StyleSheet.create({
   },
   backArrow: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 20,
   },
   dropdownContainer: {
@@ -192,23 +196,23 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   dropdown: {
-    backgroundColor: '#fff',
-    borderColor: '#ddd',
+    backgroundColor: "#fff",
+    borderColor: "#ddd",
   },
   dropdownBox: {
-    backgroundColor: '#fff',
-    borderColor: '#ccc',
+    backgroundColor: "#fff",
+    borderColor: "#ccc",
   },
   startButton: {
-    backgroundColor: '#FF4D6D',
+    backgroundColor: "#FF4D6D",
     paddingVertical: 14,
     borderRadius: 10,
     marginTop: 30,
-    alignItems: 'center',
+    alignItems: "center",
   },
   startButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });

@@ -1,216 +1,159 @@
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import dayjs from 'dayjs';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import Svg, { Circle, G, Text as TextSvg } from 'react-native-svg';
-import Icon from 'react-native-vector-icons/Ionicons';
-import NotificationPanel from '../student-others/notification';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const subjects = [
-  { id: 1, name: 'DBMS', subcode: 'SUBCODE', professor: 'Prof. Name', total: 22, present: 17 },
-  { id: 2, name: 'Maths', subcode: 'MATH101', professor: 'Prof. Math', total: 25, present: 20 },
-  { id: 3, name: 'OS', subcode: 'OS201', professor: 'Prof. OS', total: 30, present: 26 },
-  { id: 4, name: 'CN', subcode: 'CN301', professor: 'Prof. CN', total: 28, present: 25 },
-  { id: 5, name: 'AI', subcode: 'AI401', professor: 'Prof. AI', total: 18, present: 15 },
-];
-
-export default function HomeScreen() {
-  const [expandedId, setExpandedId] = useState(subjects[0].id);
-  const [showNotification, setShowNotification] = useState(false);
+export default function LogsScreen() {
   const router = useRouter();
+  const [logs, setLogs] = useState({});
 
-  const toggleExpand = (id: number) => setExpandedId(id);
+  useEffect(() => {
+    fetchLogsFromDatabase();
+  }, []);
+
+  const fetchLogsFromDatabase = async () => {
+    const mockData = [
+      { subject: 'PSQ', status: 'SUCCESS', time: '11:20:00', date: '2025-02-12' },
+      { subject: 'DBMS', status: 'FAILED', time: '11:20:00', date: '2025-02-12' },
+      { subject: 'DSA', status: 'SUCCESS', time: '11:20:00', date: '2025-02-12' },
+      { subject: 'DES', status: 'FAILED', time: '11:20:00', date: '2025-02-12' },
+
+      { subject: 'PSQ', status: 'SUCCESS', time: '11:10:00', date: '2025-02-11' },
+      { subject: 'DBMS', status: 'SUCCESS', time: '11:10:00', date: '2025-02-11' },
+      { subject: 'DSA', status: 'FAILED', time: '11:10:00', date: '2025-02-11' },
+      { subject: 'DES', status: 'SUCCESS', time: '11:10:00', date: '2025-02-11' },
+
+      { subject: 'PSQ', status: 'SUCCESS', time: '10:50:00', date: '2025-02-10' },
+      { subject: 'DBMS', status: 'FAILED', time: '10:50:00', date: '2025-02-10' },
+
+      { subject: 'DSA', status: 'SUCCESS', time: '10:30:00', date: '2025-02-09' },
+      { subject: 'DES', status: 'SUCCESS', time: '10:30:00', date: '2025-02-09' },
+      { subject: 'PSQ', status: 'FAILED', time: '10:30:00', date: '2025-02-09' },
+
+      { subject: 'DBMS', status: 'SUCCESS', time: '10:00:00', date: '2025-02-08' },
+      { subject: 'OOPS', status: 'FAILED', time: '10:00:00', date: '2025-02-08' },
+      { subject: 'ML', status: 'SUCCESS', time: '10:00:00', date: '2025-02-08' },
+    ];
+
+    const grouped = mockData.reduce((acc, item) => {
+      const label = getDateLabel(item.date);
+      if (!acc[label]) acc[label] = [];
+      acc[label].push(item);
+      return acc;
+    }, {});
+
+    setLogs(grouped);
+  };
+
+  const getDateLabel = (dateStr) => {
+    const today = dayjs();
+    const target = dayjs(dateStr);
+    if (target.isSame(today, 'day')) return 'Today';
+    if (target.isSame(today.subtract(1, 'day'), 'day')) return 'Yesterday';
+    return target.format('D MMM YYYY');
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.headerRow}>
-          <Text style={styles.header}>Hello, Kuljeet</Text>
-          <TouchableOpacity onPress={() => setShowNotification(true)}>
-            <Icon name="notifications-outline" size={24} color="#000" />
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={styles.container}>
 
-        {subjects.map((subject) => (
-          <SubjectTile
-            key={subject.id}
-            subject={subject}
-            expanded={expandedId === subject.id}
-            onPress={() => toggleExpand(subject.id)}
-            onViewDetails={() => router.push('/student-others/attendance')}
-          />
+      <View style={styles.header}>
+      <TouchableOpacity onPress={() => router.replace('/student/home')}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Logs</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <ScrollView style={styles.scroll}>
+        {Object.keys(logs).map((dateLabel) => (
+          <View key={dateLabel} style={styles.section}>
+            <Text style={styles.dateLabel}>{dateLabel}</Text>
+            {logs[dateLabel].map((log, idx) => (
+              <View key={idx} style={styles.logItem}>
+                <View style={styles.logLeft}>
+                  <Text style={styles.subject}>{log.subject}</Text>
+                  <Text style={[styles.status, { color: log.status === 'FAILED' ? '#FF6B81' : '#888' }]}>
+                    {log.status}
+                  </Text>
+                </View>
+                <View style={styles.logRight}>
+                  <Text style={styles.time}>{log.time}</Text>
+                  <Text style={styles.date}>{dayjs(log.date).format('DD-MM-YYYY')}</Text>
+                </View>
+                <MaterialIcons
+                  name={log.status === 'FAILED' ? 'cancel' : 'check-circle'}
+                  size={24}
+                  color={log.status === 'FAILED' ? '#FF6B81' : '#888'}
+                  style={{ marginLeft: 8 }}
+                />
+              </View>
+            ))}
+          </View>
         ))}
       </ScrollView>
-
-      {/* Render the Notification Panel */}
-      <NotificationPanel visible={showNotification} onClose={() => setShowNotification(false)} />
     </SafeAreaView>
   );
 }
 
-function SubjectTile({ subject, expanded, onPress, onViewDetails }: any) {
-  const { name, subcode, professor, total, present } = subject;
-  const absent = total - present;
-  const percentage = Math.round((present / total) * 100);
-
-  const radius = 40;
-  const circumference = 2 * Math.PI * radius;
-  const dashArray = (absent / total) * circumference;
-  const chartSize = expanded ? 100 : 60;
-  const strokeWidth = 20;
-
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.tileWrapper}>
-      <View style={[styles.tile, expanded && styles.tileExpanded]}>
-        <View style={styles.tileHeader}>
-          <View style={styles.leftSection}>
-            <Text style={styles.subjectName}>{name}</Text>
-            <Text style={styles.subDetails}>{subcode}</Text>
-            <Text style={styles.subDetails}>{professor}</Text>
-
-            {expanded && (
-              <TouchableOpacity style={styles.viewButton} onPress={onViewDetails}>
-                <Text style={styles.buttonText}>View Details</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={styles.rightSection}>
-            <Svg height={chartSize} width={chartSize} viewBox="0 0 100 100">
-              <G rotation={-90} origin="50, 50">
-                <Circle
-                  cx="50"
-                  cy="50"
-                  r={radius}
-                  stroke="#e0e0e0"
-                  strokeWidth={strokeWidth}
-                  fill="none"
-                />
-                <Circle
-                  cx="50"
-                  cy="50"
-                  r={radius}
-                  stroke="#e55373"
-                  strokeWidth={strokeWidth}
-                  strokeDasharray={`${dashArray} ${circumference}`}
-                  strokeDashoffset="0"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-              </G>
-              <TextSvg
-                x="43"
-                y="55"
-                fontSize={expanded ? '20' : '16'}
-                fill="#000"
-                textAnchor="middle"
-                fontWeight="bold"
-              >
-                {percentage}%
-              </TextSvg>
-            </Svg>
-
-            {expanded && (
-              <View style={styles.attendanceDetails}>
-                <Text style={styles.detailText}>Total Classes : {total}</Text>
-                <Text style={styles.detailText}>Present : {present}</Text>
-                <Text style={styles.detailText}>Absent : {absent}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  container: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 24,
-  },
   header: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#222',
-  },
-  tileWrapper: {
-    marginBottom: 16,
-  },
-  tile: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 16,
+    paddingHorizontal: 16,
     paddingVertical: 16,
-    paddingHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 6,       
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  tileExpanded: {
-    paddingVertical: 24,
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
   },
-  tileHeader: {
+  scroll: {
+    paddingHorizontal: 16,
+  },
+  section: {
+    marginTop: 24,
+  },
+  dateLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#444',
+    marginBottom: 12,
+  },
+  logItem: {
+    backgroundColor: '#f1f1f1',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  leftSection: {
+  logLeft: {
     flex: 1,
-    justifyContent: 'center',
   },
-  rightSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 90,
-  },
-  subjectName: {
-    fontSize: 18,
+  subject: {
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
+    color: '#000',
   },
-  subDetails: {
-    color: '#666',
+  status: {
     fontSize: 12,
   },
-  attendanceDetails: {
-    alignItems: 'flex-start',
-    marginTop: 8,
+  logRight: {
+    alignItems: 'flex-end',
   },
-  detailText: {
-    fontSize: 13,
-    color: '#444',
+  time: {
+    fontSize: 12,
+    color: '#000',
   },
-  viewButton: {
-    backgroundColor: '#e55373',
-    borderRadius: 20,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    marginTop: 16,
-    alignSelf: 'flex-start',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 13,
+  date: {
+    fontSize: 12,
+    color: '#888',
   },
 });
